@@ -1,11 +1,11 @@
-use std::{collections::{HashMap, HashSet, hash_map::{IntoIter, Keys}}, fmt};
+use std::{collections::{HashMap, HashSet}, fmt};
 
-const PLACEMENTS_PER_TURN: usize = 2;
-const PLAYER_MAPPING: [Tile; 2] = [ Tile::O, Tile::X ];
-const AXES: [(isize, isize); 3] = [(1, 0), (0, 1), (1, 1)];
-const SIGHT_RANGE: usize = 10;
+pub const PLACEMENTS_PER_TURN: usize = 2;
+pub const PLAYER_COUNT:usize = 2;
+pub const PLAYER_MAPPING: [Tile; PLAYER_COUNT] = [ Tile::O, Tile::X ];
+pub const AXES: [(isize, isize); 3] = [(1, 0), (0, 1), (1, 1)];
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Tile {
     X,
     O,
@@ -23,6 +23,14 @@ impl Coordinate {
             xpos: xpos,
             ypos: ypos,
         }
+    }
+
+    pub fn xpos(&self) -> isize {
+        self.xpos
+    }
+
+    pub fn ypos(&self) -> isize {
+        self.ypos
     }
 
     pub fn neighbors(&self, depth: usize) -> HashSet<Coordinate> {
@@ -87,7 +95,7 @@ impl Turn {
         self.placement += 1;
         if self.placement == PLACEMENTS_PER_TURN {
             self.placement = 0;
-            self.player = (self.player + 1) % PLAYER_MAPPING.len();
+            self.player = (self.player + 1) % PLAYER_COUNT;
         }
     }
 
@@ -121,6 +129,14 @@ impl Board {
         }
     }
 
+    pub fn turn(&self) -> &Turn {
+        &self.turn
+    }
+
+    pub fn tiles(&self) -> &HashMap<Coordinate, Tile> {
+        &self.tiles
+    }
+
     pub fn play(&mut self, coord: Coordinate) -> bool {
         match self.tiles.contains_key(&coord) {
             true => false,
@@ -130,10 +146,6 @@ impl Board {
                 true
             }
         }
-    }
-
-    pub fn turn(&self) -> &Turn {
-        &self.turn
     }
 
     pub fn region(&self, depth: usize) -> HashSet<Coordinate> {
@@ -168,6 +180,7 @@ impl Board {
     }
 }
 
+const SIGHT_RANGE: usize = 10;
 impl fmt::Display for Board {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut range: Coordinate = match self.bounds.range() {
