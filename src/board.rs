@@ -11,7 +11,7 @@ pub enum Tile {
     O,
 }
 
-#[derive(Eq, PartialEq, Hash, Copy, Clone)]
+#[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
 pub struct Coord {
     xpos: isize,
     ypos: isize,
@@ -51,6 +51,7 @@ impl Coord {
     }
 }
 
+#[derive(Clone)]
 struct Bound {
     xmin: isize,
     xmax: isize,
@@ -78,6 +79,7 @@ impl Bound {
     }
 }
 
+#[derive(Clone)]
 pub struct Turn {
     player: usize,
     placement: usize,
@@ -108,6 +110,7 @@ impl Turn {
     }
 }
 
+#[derive(Clone)]
 pub struct Board {
     tiles: HashMap<Coord, Tile>,
     bounds: Bound,

@@ -111,12 +111,21 @@ impl Eval {
     }
 
     pub fn evaluate(&self, board: &Board) -> f32 {
-        let assessment: [[isize; PLAYER_COUNT]; BASE_PATTERN_COUNT] = Self::assess(board);
-        let mut out: f32 = 0.0;
-        for i in 0..BASE_PATTERN_COUNT {
-            out += self.weights[i] * (assessment[i][0] - assessment[i][1]) as f32;
+        match board.winner() {
+            Some(winner) => match winner {
+                Tile::X => f32::NEG_INFINITY,
+                Tile::O => f32::INFINITY,
+            },
+            None => {
+                let assessment: [[isize; PLAYER_COUNT]; BASE_PATTERN_COUNT] = Self::assess(board);
+                let mut out: f32 = 0.0;
+                for i in 0..BASE_PATTERN_COUNT {
+                    out += self.weights[i] * (assessment[i][0] - assessment[i][1]) as f32;
+                }
+                
+                out
+            }
         }
-        out
     }
 }
 
