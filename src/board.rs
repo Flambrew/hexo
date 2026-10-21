@@ -12,14 +12,14 @@ pub enum Tile {
 }
 
 #[derive(Eq, PartialEq, Hash, Copy, Clone)]
-pub struct Coordinate {
+pub struct Coord {
     xpos: isize,
     ypos: isize,
 }
 
-impl Coordinate {
-    pub fn new(xpos: isize, ypos: isize) -> Coordinate {
-        Coordinate {
+impl Coord {
+    pub fn new(xpos: isize, ypos: isize) -> Coord {
+        Coord {
             xpos: xpos,
             ypos: ypos,
         }
@@ -33,14 +33,14 @@ impl Coordinate {
         self.ypos
     }
 
-    pub fn neighbors(&self, depth: usize) -> HashSet<Coordinate> {
-        let mut out: HashSet<Coordinate> = HashSet::new();
+    pub fn neighbors(&self, depth: usize) -> HashSet<Coord> {
+        let mut out: HashSet<Coord> = HashSet::new();
         let depth: isize = depth as isize;
         for i in (-depth)..=depth {
             let min: isize = if i <= 0 { -depth } else { i-depth };
             let max: isize = if i <= 0 { i+depth } else { depth };
             for j in min..=max {
-                out.insert(Coordinate {
+                out.insert(Coord {
                     xpos: j,
                     ypos: i,
                 });
@@ -51,16 +51,16 @@ impl Coordinate {
     }
 }
 
-struct Bounds {
+struct Bound {
     xmin: isize,
     xmax: isize,
     ymin: isize,
     ymax: isize,
 }
 
-impl Bounds {
-    fn new() -> Bounds {
-        Bounds {
+impl Bound {
+    fn new() -> Bound {
+        Bound {
             xmin: isize::MAX, 
             xmax: isize::MIN, 
             ymin: isize::MAX, 
@@ -68,8 +68,8 @@ impl Bounds {
         }
     }
 
-    fn range(&self) -> Option<Coordinate> {
-        let range: Coordinate = Coordinate::new(self.xmax - self.xmin + 1, self.ymax - self.ymin + 1);
+    fn range(&self) -> Option<Coord> {
+        let range: Coord = Coord::new(self.xmax - self.xmin + 1, self.ymax - self.ymin + 1);
         if range.xpos < 0 || range.ypos < 0 {
             return None;
         } else {
@@ -109,8 +109,8 @@ impl Turn {
 }
 
 pub struct Board {
-    tiles: HashMap<Coordinate, Tile>,
-    bounds: Bounds,
+    tiles: HashMap<Coord, Tile>,
+    bounds: Bound,
     turn: Turn,
 }
 
@@ -118,9 +118,9 @@ impl Board {
     pub fn new() -> Board {
         Board {
             turn: Turn::new(),
-            bounds: Bounds::new(),
+            bounds: Bound::new(),
             tiles: HashMap::from([(
-                Coordinate {
+                Coord {
                     xpos: 0,
                     ypos: 0,
                 }, 
@@ -133,11 +133,11 @@ impl Board {
         &self.turn
     }
 
-    pub fn tiles(&self) -> &HashMap<Coordinate, Tile> {
+    pub fn tiles(&self) -> &HashMap<Coord, Tile> {
         &self.tiles
     }
 
-    pub fn play(&mut self, coord: Coordinate) -> bool {
+    pub fn play(&mut self, coord: Coord) -> bool {
         match self.tiles.contains_key(&coord) {
             true => false,
             false => {
@@ -148,8 +148,8 @@ impl Board {
         }
     }
 
-    pub fn region(&self, depth: usize) -> HashSet<Coordinate> {
-        let mut out: HashSet<Coordinate> = HashSet::new();
+    pub fn region(&self, depth: usize) -> HashSet<Coord> {
+        let mut out: HashSet<Coord> = HashSet::new();
         for key in self.tiles.keys() {
             for coord in key.neighbors(depth) {
                 out.insert(coord);
@@ -164,7 +164,7 @@ impl Board {
             for (dx, dy) in AXES {
                 let mut count: usize = 1;
                 for i in 1..6 {
-                    match self.tiles.get(&Coordinate::new(coord.xpos + dx * i, coord.ypos + dy * i)) {
+                    match self.tiles.get(&Coord::new(coord.xpos + dx * i, coord.ypos + dy * i)) {
                         Some(next) if next == tile => count += 1,
                         _ => break,
                     }
@@ -183,7 +183,7 @@ impl Board {
 const SIGHT_RANGE: usize = 10;
 impl fmt::Display for Board {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut range: Coordinate = match self.bounds.range() {
+        let mut range: Coord = match self.bounds.range() {
             Some(coord) => coord,
             None => return writeln!(f, "ERROR: INVALID BOARD RANGE"),
         };

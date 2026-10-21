@@ -1,7 +1,6 @@
 use std::{collections::HashMap};
 
-use crate::board::{AXES, Board, Coordinate, PLAYER_COUNT, Tile};
-use crate::bot_core::{BASE_PATTERN_COUNT, BASE_PATTERNS, pattern_permutations};
+use crate::board::{AXES, Board, Coord, PLAYER_COUNT, Tile};
 
 /* This bot uses a very simple weighting scheme where each of the nineteen 
  * valid threat possibilities is weighted linearly based on a very surface
@@ -10,13 +9,51 @@ use crate::bot_core::{BASE_PATTERN_COUNT, BASE_PATTERNS, pattern_permutations};
  * double(etc)-counts for each pattern center. 
  */
 
-pub struct Bot {
+pub const BASE_PATTERN_COUNT: usize = 21;
+pub const BASE_PATTERNS: [&str; BASE_PATTERN_COUNT] = [
+    "____XX____",
+    "O___XX____",
+    "O___XX___O",
+    "O__XX____",
+    "O__XX___O",
+    "O__XX__O",
+    "O_XX____",
+    "O_XX___O",
+    "OXX____",
+    "___XXX___",
+    "O__XXX___",
+    "O__XXX__O",
+    "O_XXX___",
+    "O_XXX__O",
+    "OXXX___",
+    "__XXXX__",
+    "O_XXXX__",
+    "O_XXXX_O",
+    "OXXXX__",
+    "_XXXXX_",
+    "OXXXXX_",
+];
+
+pub fn pattern_permutations(line: &str) -> [String; 4] {
+    let base: String = String::from(line);
+    let swapped: String = line.chars().map(|c| match c {
+        'X' => 'O',
+        'O' => 'X',
+        other => other,
+    }).collect();
+    let reversed = base.chars().rev().collect();
+    let swapped_reversed = swapped.chars().rev().collect();
+    
+    [base, swapped, reversed, swapped_reversed]
+}
+
+pub struct Eval {
     weights: [f32; BASE_PATTERN_COUNT],
 }
 
-impl Bot {
-    pub fn new() -> Bot {
-        Bot {
+impl Eval {
+    pub fn new() -> Eval {
+        Eval {
             weights: [
                 09.0, 08.0, 05.0, 07.0, 04.0, 02.0, 06.0, 01.0, 03.0, 
                 15.0, 14.0, 12.0, 13.0, 10.0, 12.0, 
@@ -26,8 +63,8 @@ impl Bot {
         }
     }
 
-    pub fn new_from(weights: [f32; BASE_PATTERN_COUNT]) -> Bot {
-        Bot {
+    pub fn new_from(weights: [f32; BASE_PATTERN_COUNT]) -> Eval {
+        Eval {
             weights: weights,
         }
     }
@@ -45,13 +82,13 @@ impl Bot {
     }
 
     fn assess(board: &Board) -> [[isize; PLAYER_COUNT]; BASE_PATTERN_COUNT] {
-        let tiles: &HashMap<Coordinate, Tile> = board.tiles();
+        let tiles: &HashMap<Coord, Tile> = board.tiles();
         let mut out: [[isize; PLAYER_COUNT]; BASE_PATTERN_COUNT] = [[0; PLAYER_COUNT]; BASE_PATTERN_COUNT];
         for (coord, tile) in tiles {
             for (dx, dy) in AXES {
                 let mut line: String = String::with_capacity(12);
                 for i in -5..=5 {
-                    match tiles.get(&Coordinate::new(coord.xpos() + dx * i, coord.ypos() + dy * i)) {
+                    match tiles.get(&Coord::new(coord.xpos() + dx * i, coord.ypos() + dy * i)) {
                         Some(next) => match next {
                             Tile::X => line.insert((i + 5) as usize, 'X'),
                             Tile::O => line.insert((i + 5) as usize, 'O'),
@@ -80,15 +117,6 @@ impl Bot {
             out += self.weights[i] * (assessment[i][0] - assessment[i][1]) as f32;
         }
         out
-    }
-
-    pub fn decide(_board: &Board) -> Coordinate {
-
-        
-        
-        
-        
-        Coordinate::new(0, 0)
     }
 }
 
